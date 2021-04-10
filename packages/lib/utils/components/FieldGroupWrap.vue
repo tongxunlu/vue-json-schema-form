@@ -21,7 +21,7 @@
 <script>
 export default {
     name: 'FieldGroupWrap',
-    inject: ['genFormProvide'],
+    inject: ['$genFormProvide'],
     props: {
         // 当前节点路径
         curNodePath: {
@@ -46,13 +46,20 @@ export default {
         }
     },
     computed: {
+        genFormProvide() {
+            // vue3/vue2 响应式provide
+            // 实现方式差异如下：
+            // provide vue3 computed 直接为响应式数据
+            // provide vue2 需要计算属性访问原始值
+            return typeof this.$genFormProvide === 'function' ? this.$genFormProvide() : this.$genFormProvide.value;
+        },
         trueTitle() {
             const title = this.title;
             if (title) {
                 return title;
             }
-
-            const genFormProvide = this.genFormProvide.value || this.genFormProvide;
+            debugger;
+            const genFormProvide = this.genFormProvide;
 
             const backTitle = genFormProvide.fallbackLabel && this.curNodePath.split('.').pop();
             if (backTitle !== `${Number(backTitle)}`) return backTitle;

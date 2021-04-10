@@ -178,7 +178,7 @@
                             :custom-formats="customFormats"
                             :form-footer="trueFormFooter"
                             :form-props="trueFormProps"
-                            :fallback-label="true"
+                            :fallback-label="fallbackLabel"
                             @on-form-mounted="handleFormMounted"
                             @on-change="handleDataChange"
                             @on-cancel="handleCancel"
@@ -222,6 +222,7 @@ export default {
     },
     data() {
         return {
+            fallbackLabel: true,
             typeItems,
             curVueForm: this.$route.query.ui || 'VueElementForm',
             ...this.getDefaultSchemaMap(),
@@ -295,6 +296,7 @@ export default {
         }
     },
     created() {
+        window.demoInstance = this;
         this.initData();
     },
     methods: {

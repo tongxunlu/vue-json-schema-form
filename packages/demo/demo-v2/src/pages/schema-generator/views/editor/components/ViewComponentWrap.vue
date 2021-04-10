@@ -55,7 +55,6 @@
             :child-component-list="editorItem.childList"
             :drag-options="dragOptions"
             :form-data="formData"
-            :form-props="formProps"
         >
         </NestedEditor>
     </div>
@@ -90,16 +89,11 @@ export default {
         formData: {
             type: Object,
             default: () => ({})
-        },
-        formProps: {
-            type: null,
-            default: null
         }
     },
     computed: {
         attrs() {
             return {
-                formProps: this.formProps,
                 globalOptions,
                 ...editorItem2SchemaFieldProps(this.editorItem, this.formData)
             };

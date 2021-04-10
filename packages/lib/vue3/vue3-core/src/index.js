@@ -46,9 +46,17 @@ export default function createForm(globalOptions = {}) {
             }
 
             // 使用provide 传递跨组件数据
-            provide('genFormProvide', computed(() => ({
-                fallbackLabel: props.fallbackLabel
-            })));
+            const genFormProvide = computed(() => ({
+                fallbackLabel: props.fallbackLabel,
+                customFormats: props.customFormats,
+                customRule: props.customRule,
+                formProps: {
+                    labelPosition: 'top',
+                    labelSuffix: '：',
+                    ...props.formProps
+                }
+            }));
+            provide('$genFormProvide', genFormProvide);
 
             // rootFormData
             const rootFormData = ref(getDefaultFormState(props.schema, props.modelValue, props.schema));
@@ -140,22 +148,16 @@ export default function createForm(globalOptions = {}) {
             return () => {
                 const {
                     layoutColumn = 1, inlineFooter, inline, ...otherFormProps
-                } = props.formProps;
+                } = genFormProvide.value.formProps;
+
                 const schemaProps = {
                     schema: props.schema,
                     uiSchema: props.uiSchema,
                     errorSchema: props.errorSchema,
-                    customFormats: props.customFormats,
-                    customRule: props.customRule,
                     rootSchema: props.schema,
                     rootFormData: rootFormData.value, // 根节点的数据
                     curNodePath: '', // 当前节点路径
                     globalOptions, // 全局配置，差异化ui框架
-                    formProps: {
-                        labelSuffix: '：',
-                        labelPosition: 'top',
-                        ...otherFormProps,
-                    }
                 };
 
                 return h(
@@ -174,7 +176,7 @@ export default function createForm(globalOptions = {}) {
                             emit('form-mounted', form);
                         },
                         model: rootFormData,
-                        ...schemaProps.formProps
+                        ...otherFormProps
                     },
                     {
                         default: () => [

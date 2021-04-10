@@ -202,7 +202,7 @@
                             :custom-formats="customFormats"
                             :form-footer="trueFormFooter"
                             :form-props="trueFormProps"
-                            :fallback-label="true"
+                            :fallback-label="fallbackLabel"
                             @form-mounted="handleFormMounted"
                             @change="handleDataChange"
                             @cancel="handleCancel"
@@ -223,14 +223,14 @@ import EditorHeader from 'demo-common/components/EditorHeader.vue';
 import CodeEditor from 'demo-common/components/CodeEditor';
 import schemaTypes from 'demo-common/schemaTypes';
 
-const VueElementForm = defineAsyncComponent(() => import('@lljj/vue3-form-element'));
+const VueElementForm = defineAsyncComponent(() => import('@lljj/vue3-form-element/src/index'));
 
 let installedAntdv = false;
 const VueAntForm = defineAsyncComponent(async () => {
     // eslint-disable-next-line no-unused-vars
     const [antdv, antForm] = await Promise.all([
         import('demo-common/components/Antdv/index.js'),
-        import('@lljj/vue3-form-ant')
+        import('@lljj/vue3-form-ant/src/index')
     ]);
 
     return {
@@ -262,6 +262,7 @@ export default {
     },
     data() {
         return {
+            fallbackLabel: true,
             typeItems,
             curVueForm: this.$route.query.ui || 'VueElementForm',
             ...this.getDefaultSchemaMap(),
@@ -366,6 +367,7 @@ export default {
         }
     },
     created() {
+        window.demoInstance = this;
         this.initData();
     },
     methods: {

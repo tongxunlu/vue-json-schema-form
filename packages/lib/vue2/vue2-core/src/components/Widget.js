@@ -8,11 +8,11 @@ import {
 
 import { validateFormDataAndTransformMsg } from '@lljj/vjsf-utils/schema/validate';
 import { IconQuestion } from '@lljj/vjsf-utils/icons';
-import { fallbackLabel } from '@lljj/vjsf-utils/formUtils';
+import { fallbackLabel as getFallbackLabel } from '@lljj/vjsf-utils/formUtils';
 
 export default {
     name: 'Widget',
-    inject: ['genFormProvide'],
+    inject: ['$genFormProvide'],
     props: {
         // 是否同步formData的值，默认表单元素都需要
         // oneOf anyOf 中的select属于formData之外的数据
@@ -36,15 +36,6 @@ export default {
         errorSchema: {
             type: Object,
             default: () => ({})
-        },
-        customFormats: {
-            type: Object,
-            default: () => ({})
-        },
-        // 自定义校验
-        customRule: {
-            type: Function,
-            default: null
         },
         widget: {
             type: [String, Function, Object],
@@ -127,11 +118,13 @@ export default {
             type: Object,
             default: () => ({})
         },
-        formProps: null,
         getWidget: null,
         globalOptions: null // 全局配置
     },
     computed: {
+        genFormProvide() {
+            return this.$genFormProvide();
+        },
         value: {
             get() {
                 if (this.isFormData) {
@@ -167,18 +160,22 @@ export default {
     render(h) {
         const self = this;
 
-        const { curNodePath } = this.$props;
+        const {
+            curNodePath, description, width, globalOptions, widget, labelWidth, rootFormData, required
+        } = this.$props;
+
+        const { formProps, customFormats, customRule } = this.genFormProvide;
 
         // 判断是否为根节点
         const isRootNode = isRootNodePath(curNodePath);
 
-        const miniDesModel = self.globalOptions.HELPERS.isMiniDes(self.formProps);
+        const miniDesModel = globalOptions.HELPERS.isMiniDes(formProps);
 
-        const descriptionVNode = (self.description) ? h(
+        const descriptionVNode = (description) ? h(
             'div',
             {
                 domProps: {
-                    innerHTML: self.description
+                    innerHTML: description
                 },
                 class: {
                     genFromWidget_des: true
@@ -186,7 +183,7 @@ export default {
             },
         ) : null;
 
-        const { COMPONENT_MAP } = self.globalOptions;
+        const { COMPONENT_MAP } = globalOptions;
 
         const miniDescriptionVNode = (miniDesModel && descriptionVNode) ? h(COMPONENT_MAP.popover, {
             style: {
@@ -208,55 +205,54 @@ export default {
 
         // form-item style
         const formItemStyle = {
-            ...self.fieldStyle,
-            ...(self.width ? {
-                width: self.width,
-                flexBasis: self.width,
+            ...this.fieldStyle,
+            ...(width ? {
+                width,
+                flexBasis: width,
                 paddingRight: '10px'
             } : {})
         };
 
         // 运行配置回退到 属性名
-        const label = fallbackLabel(self.label, (self.widget && this.genFormProvide.fallbackLabel), curNodePath);
+        const label = getFallbackLabel(this.label, (widget && this.genFormProvide.fallbackLabel), curNodePath);
 
         return h(
             COMPONENT_MAP.formItem,
             {
                 class: {
-                    ...self.fieldClass,
+                    ...this.fieldClass,
                     genFormItem: true
                 },
                 style: formItemStyle,
-                attrs: self.fieldAttrs,
+                attrs: this.fieldAttrs,
                 props: {
-                    ...self.labelWidth ? { labelWidth: self.labelWidth } : {},
+                    ...labelWidth ? { labelWidth } : {},
                     ...this.isFormData ? {
                         // 这里对根节点打特殊标志，绕过elementUi无prop属性不校验
                         prop: isRootNode ? '__$$root' : path2prop(curNodePath),
                         rules: [
                             {
                                 validator(rule, value, callback) {
-                                    if (isRootNode) value = self.rootFormData;
+                                    if (isRootNode) value = rootFormData;
 
                                     // 校验是通过对schema逐级展开校验 这里只捕获根节点错误
                                     const errors = validateFormDataAndTransformMsg({
                                         formData: value,
                                         schema: self.$props.schema,
                                         uiSchema: self.$props.uiSchema,
-                                        customFormats: self.$props.customFormats,
+                                        customFormats,
                                         errorSchema: self.errorSchema,
-                                        required: self.required,
+                                        required,
                                         propPath: path2prop(curNodePath)
                                     });
                                     if (errors.length > 0) return callback(errors[0].message);
 
                                     // customRule 如果存在自定义校验
-                                    const curCustomRule = self.$props.customRule;
-                                    if (curCustomRule && (typeof curCustomRule === 'function')) {
-                                        return curCustomRule({
+                                    if (customRule && (typeof customRule === 'function')) {
+                                        return customRule({
                                             field: curNodePath,
                                             value,
-                                            rootFormData: self.rootFormData,
+                                            rootFormData,
                                             callback
                                         });
                                     }
@@ -285,19 +281,19 @@ export default {
                     slot: 'label',
                     class: {
                         genFormLabel: true,
-                        genFormItemRequired: self.required,
+                        genFormItemRequired: required,
                     },
                 }, [
                     `${label}`,
                     miniDescriptionVNode,
-                    `${(self.formProps && self.formProps.labelSuffix) || ''}`
+                    `${(formProps && formProps.labelSuffix) || ''}`
                 ]) : null,
 
                 // description
                 // 非mini模式显示 description
                 !miniDesModel ? descriptionVNode : null,
                 h( // 关键输入组件
-                    self.widget,
+                    widget,
                     {
                         style: self.widgetStyle,
                         class: self.widgetClass,

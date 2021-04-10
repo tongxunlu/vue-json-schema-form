@@ -36,7 +36,8 @@ export default function createForm(globalOptions = {}) {
         props: vueProps,
         provide() {
             return {
-                genFormProvide: this.genFormProvide
+                // 处理为响应式
+                $genFormProvide: () => this.genFormProvide
             };
         },
         data() {
@@ -52,7 +53,14 @@ export default function createForm(globalOptions = {}) {
         computed: {
             genFormProvide() {
                 return {
-                    fallbackLabel: this.fallbackLabel
+                    fallbackLabel: this.fallbackLabel,
+                    customFormats: this.customFormats,
+                    customRule: this.customRule,
+                    formProps: {
+                        labelPosition: 'top',
+                        labelSuffix: '：',
+                        ...this.formProps
+                    }
                 };
             },
             footerParams() {
@@ -108,19 +116,22 @@ export default function createForm(globalOptions = {}) {
         },
         render(h) {
             const self = this;
+
+            const { footerParams, formData } = self;
+
             // default scoped slot
             const defaultSlot = this.$scopedSlots.default
-                ? this.$scopedSlots.default({
-                    formData: self.formData,
+                ? self.$scopedSlots.default({
+                    formData,
                     formRefFn: () => self.$refs.genEditForm
                 })
-                : this.footerParams.show
+                : footerParams.show
                     ? h(FormFooter, {
                         props: {
                             globalOptions,
-                            okBtn: self.footerParams.okBtn,
-                            cancelBtn: self.footerParams.cancelBtn,
-                            formItemAttrs: self.footerParams.formItemAttrs,
+                            okBtn: footerParams.okBtn,
+                            cancelBtn: footerParams.cancelBtn,
+                            formItemAttrs: footerParams.formItemAttrs,
                         },
                         on: {
                             onCancel() {
@@ -129,7 +140,7 @@ export default function createForm(globalOptions = {}) {
                             onSubmit() {
                                 self.$refs.genEditForm.validate((isValid, resData) => {
                                     if (isValid) {
-                                        return self.$emit('on-submit', self.formData);
+                                        return self.$emit('on-submit', formData);
                                     }
                                     console.warn(resData);
                                     return self.$emit('on-validation-failed', resData);
@@ -140,23 +151,17 @@ export default function createForm(globalOptions = {}) {
 
             const {
                 layoutColumn = 1, inlineFooter, inline, ...formProps
-            } = self.$props.formProps;
+            } = self.genFormProvide.formProps;
 
             const props = {
-                schema: this.schema,
-                uiSchema: this.uiSchema,
-                errorSchema: this.errorSchema,
-                customFormats: this.customFormats,
-                customRule: this.customRule,
-                rootSchema: this.schema,
-                rootFormData: this.formData, // 根节点的数据
+                schema: self.schema,
+                uiSchema: self.uiSchema,
+                errorSchema: self.errorSchema,
+                rootSchema: self.schema,
+                rootFormData: formData, // 根节点的数据
                 curNodePath: '', // 当前节点路径
                 globalOptions, // 全局配置，差异化ui框架
-                formProps: {
-                    labelPosition: 'top',
-                    labelSuffix: '：',
-                    ...formProps,
-                }
+                formProps
             };
 
             return h(
@@ -166,13 +171,13 @@ export default function createForm(globalOptions = {}) {
                         genFromComponent: true,
                         formInlineFooter: inlineFooter,
                         formInline: inline,
-                        [`genFromComponent_${this.schema.id}Form`]: !!this.schema.id,
+                        [`genFromComponent_${self.schema.id}Form`]: !!self.schema.id,
                         layoutColumn: !inline,
                         [`layoutColumn-${layoutColumn}`]: !inline
                     },
                     ref: 'genEditForm',
                     props: {
-                        model: self.formData,
+                        model: formData,
                         ...props.formProps
                     }
                 },

@@ -4,9 +4,9 @@
 
 // 递归参数，统一props
 export default {
-    formProps: {
-        type: null
-    },
+    // formProps: {
+    //     type: null
+    // },
     // 全局的配置，用于 初始化差异，适配不同的ui框架
     globalOptions: {
         type: null
@@ -27,15 +27,15 @@ export default {
         default: () => ({})
     },
     // 自定义校验
-    customRule: {
-        type: Function,
-        default: null
-    },
+    // customRule: {
+    //     type: Function,
+    //     default: null
+    // },
     // 自定义校验规则
-    customFormats: {
-        type: Object,
-        default: () => ({})
-    },
+    // customFormats: {
+    //     type: Object,
+    //     default: () => ({})
+    // },
     // 根节点 Schema
     rootSchema: {
         type: Object,

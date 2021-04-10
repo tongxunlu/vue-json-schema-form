@@ -24,7 +24,6 @@
                 :editor-item="item"
                 :drag-options="dragOptions"
                 :show-nested-editor="showNestedEditor"
-                :form-props="formProps"
                 @onOperate="handleItemOperate"
             >
             </ViewComponentWrap>
@@ -61,10 +60,6 @@ export default {
         childComponentList: {
             type: Array,
             default: () => []
-        },
-        formProps: {
-            type: null,
-            default: null
         }
     },
     watch: {
